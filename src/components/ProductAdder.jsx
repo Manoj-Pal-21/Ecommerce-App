@@ -3,35 +3,16 @@ import ProductInput from "./ProductInput";
 import DiscountInput from "./DiscountInput";
 import ProductManagement from "./ProductManagement";
 import ProductSelectorModal from "../modal/ProductSelectorModal";
-import Loader from "../loader";
 
 export default function ProductAdder() {
     const [showDiscount, setShowDiscount] = useState([false]);
     const [productSets, setProductSets] = useState([{ selectedProducts: [], discountAmount: 0, discountType: 'percent' }]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [productData, setProductData] = useState([]);
     const [editingIndex, setEditingIndex] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
 
-    const openModal = async (index) => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('https://stageapi.monkcommerce.app/task/products/search?search=Hat&page=2&limit=1', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': '72njgfa948d9aS7gs5',
-                },
-            });
-            const data = await response.json();
-            setProductData(data);
-            setEditingIndex(index);
-            setIsModalOpen(true);
-        } catch (error) {
-            console.error("Failed to fetch product data:", error);
-        } finally {
-            setIsLoading(false);
-        }
+    const openModal = (index) => {
+        setEditingIndex(index);
+        setIsModalOpen(true);
     };
 
     const closeModal = () => {
@@ -130,13 +111,8 @@ export default function ProductAdder() {
             {isModalOpen && (
                 <ProductSelectorModal
                     closeModal={closeModal}
-                    productData={productData}
                     onAddProducts={handleAddProducts}
-                >
-                    {isLoading && (
-                        <Loader />
-                    )}
-                </ProductSelectorModal>
+                />
             )}
         </div>
     );

@@ -1,9 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MdClose, MdSearch, MdCheckBox, MdCheckBoxOutlineBlank } from 'react-icons/md';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import Loader from '../loader';
 
-export default function ProductSelectorModal({ closeModal, productData, onAddProducts }) {
+export default function ProductSelectorModal({ closeModal, onAddProducts }) {
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [hasMore, setHasMore] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(false); 
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setLoading(true); 
+            const response = await fetch(`https://stageapi.monkcommerce.app/task/products/search?search=${searchTerm}&page=${currentPage}&limit=10`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': '72njgfa948d9aS7gs5',
+                },
+            });
+            const data = await response.json();
+            setLoading(false);
+            
+            if (data.length < 10) {
+                setHasMore(false);
+            }
+            setProducts(prev => [...prev, ...data]);
+        };
+
+        fetchProducts();
+    }, [searchTerm, currentPage]);
 
     const toggleVariant = (variantId) => {
         setSelectedProducts((prev) =>
@@ -24,12 +52,12 @@ export default function ProductSelectorModal({ closeModal, productData, onAddPro
         }
     };
 
-    const filteredProducts = Array.isArray(productData) ? productData.filter((product) =>
+    const filteredProducts = products.filter((product) =>
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.variants.some((variant) =>
             variant.title.toLowerCase().includes(searchTerm.toLowerCase())
         )
-    ) : [];
+    );
 
     const handleAddClick = () => {
         const selectedProductsWithVariants = filteredProducts.flatMap(product =>
@@ -40,7 +68,14 @@ export default function ProductSelectorModal({ closeModal, productData, onAddPro
                     variant
                 }))
         );
-        onAddProducts(selectedProductsWithVariants);
+
+        const uniqueProducts = selectedProductsWithVariants.filter((item, index, self) =>
+            index === self.findIndex((t) => (
+                t.variant.id === item.variant.id
+            ))
+        );
+
+        onAddProducts(uniqueProducts);
     };
 
     return (
@@ -59,44 +94,57 @@ export default function ProductSelectorModal({ closeModal, productData, onAddPro
                             placeholder="Search product"
                             className="w-full pl-10 pr-4 py-2 border rounded-md"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                                setProducts([]);
+                                setHasMore(true);
+                            }}
                         />
                         <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     </div>
                     <div className="max-h-96 overflow-y-auto">
-                        {filteredProducts.map((product) => (
-                            <div key={product.id} className="mb-4 border-b last:border-b-0 pb-2">
-                                <div className="flex items-center py-2">
-                                    <button onClick={() => toggleAllVariants(product)} className="mr-2 text-green-600">
-                                        {isAllVariantsSelected(product) ? <MdCheckBox size={24} /> : <MdCheckBoxOutlineBlank size={24} />}
-                                    </button>
-                                    {product.image && (
-                                        <img src={product.image.src} alt={product.title} className="w-10 h-10 object-cover mr-2" />
-                                    )}
-                                    <div className="flex-grow">
-                                        <p className="font-semibold">{product.title}</p>
+                        <InfiniteScroll
+                            dataLength={filteredProducts.length}
+                            next={() => setCurrentPage(prev => prev + 1)}
+                            hasMore={hasMore}
+                            loader={loading ? <Loader /> : null} 
+                            endMessage={<p>No more products</p>}
+                        >
+                            {filteredProducts.map((product) => (
+                                <div key={product.id} className="mb-4 border-b last:border-b-0 pb-2">
+                                    <div className="flex items-center py-2">
+                                        <button onClick={() => toggleAllVariants(product)} className="mr-2 text-green-600">
+                                            {isAllVariantsSelected(product) ? <MdCheckBox size={24} /> : <MdCheckBoxOutlineBlank size={24} />}
+                                        </button>
+                                        {product.image && (
+                                            <img src={product.image.src} alt={product.title} className="w-10 h-10 object-cover mr-2" />
+                                        )}
+                                        <div className="flex-grow">
+                                            <p className="font-semibold">{product.title}</p>
+                                        </div>
+                                    </div>
+                                    <div className="ml-8">
+                                        {product.variants.map((variant) => (
+                                            <div key={variant.id} className="flex items-center py-2">
+                                                <button onClick={() => toggleVariant(variant.id)} className="mr-2 text-green-600">
+                                                    {selectedProducts.includes(variant.id) ? <MdCheckBox size={24} /> : <MdCheckBoxOutlineBlank size={24} />}
+                                                </button>
+                                                <div className="flex-grow">
+                                                    <p className="text-sm font-semibold">{variant.title}</p>
+                                                </div>
+                                                <div className="text-right px-6">
+                                                    <p className="text-sm font-semibold">{variant.inventory_quantity} available</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-sm font-semibold">${parseFloat(variant.price).toFixed(2)}</p>
+                                                </div>
+                                            </div>
+                                        ))} 
                                     </div>
                                 </div>
-                                <div className="ml-8">
-                                    {product.variants.map((variant) => (
-                                        <div key={variant.id} className="flex items-center py-2">
-                                            <button onClick={() => toggleVariant(variant.id)} className="mr-2 text-green-600">
-                                                {selectedProducts.includes(variant.id) ? <MdCheckBox size={24} /> : <MdCheckBoxOutlineBlank size={24} />}
-                                            </button>
-                                            <div className="flex-grow">
-                                                <p className="text-sm font-semibold">{variant.title}</p>
-                                            </div>
-                                            <div className="text-right px-6">
-                                                <p className="text-sm font-semibold">{variant.inventory_quantity} available</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-semibold">${parseFloat(variant.price).toFixed(2)}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </InfiniteScroll>
                     </div>
                 </div>
                 <div className="flex flex-col md:flex-row justify-between items-center p-4 border-t">
@@ -108,7 +156,6 @@ export default function ProductSelectorModal({ closeModal, productData, onAddPro
                         >
                             Cancel
                         </button>
-
                         <button onClick={handleAddClick} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
                             Add
                         </button>
