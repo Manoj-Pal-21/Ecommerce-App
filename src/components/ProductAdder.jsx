@@ -3,6 +3,7 @@ import ProductInput from "./ProductInput";
 import DiscountInput from "./DiscountInput";
 import ProductManagement from "./ProductManagement";
 import ProductSelectorModal from "../modal/ProductSelectorModal";
+import Loader from "../loader";
 
 export default function ProductAdder() {
     const [showDiscount, setShowDiscount] = useState([false]);
@@ -10,8 +11,10 @@ export default function ProductAdder() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [productData, setProductData] = useState([]);
     const [editingIndex, setEditingIndex] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const openModal = async (index) => {
+        setIsLoading(true);
         try {
             const response = await fetch('https://stageapi.monkcommerce.app/task/products/search?search=Hat&page=2&limit=1', {
                 method: 'GET',
@@ -26,6 +29,8 @@ export default function ProductAdder() {
             setIsModalOpen(true);
         } catch (error) {
             console.error("Failed to fetch product data:", error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -63,11 +68,18 @@ export default function ProductAdder() {
     const removeProduct = (setIndex, productIndex) => {
         setProductSets(prev => {
             const updatedSets = [...prev];
-            updatedSets[setIndex].selectedProducts.splice(productIndex, 1); 
+            updatedSets[setIndex].selectedProducts.splice(productIndex, 1);
             return updatedSets;
         });
     };
-    
+
+    const removeItem = (setIndex) => {
+        setProductSets(prev => {
+            const updatedSets = [...prev];
+            updatedSets.splice(setIndex, 1);
+            return updatedSets;
+        });
+    };
 
     return (
         <div className="w-full max-w-xl mx-auto p-4 mt-10">
@@ -96,15 +108,15 @@ export default function ProductAdder() {
                                 updatedSets[index].discountType = type;
                                 setProductSets(updatedSets);
                             }}
+                            removeItem={() => removeItem(index)}
                         />
                     </div>
                     <ProductManagement
                         products={set.selectedProducts}
                         discountAmount={set.discountAmount}
                         discountType={set.discountType}
-                        removeProduct={(productIndex) => removeProduct(index, productIndex)} 
+                        removeProduct={(productIndex) => removeProduct(index, productIndex)}
                     />
-
                 </div>
             ))}
             <div className="flex justify-end mt-4">
@@ -120,7 +132,11 @@ export default function ProductAdder() {
                     closeModal={closeModal}
                     productData={productData}
                     onAddProducts={handleAddProducts}
-                />
+                >
+                    {isLoading && (
+                        <Loader />
+                    )}
+                </ProductSelectorModal>
             )}
         </div>
     );
