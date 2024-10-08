@@ -102,9 +102,13 @@ export default function ProductSelectorModal({ closeModal, productData, onAddPro
                 <div className="flex flex-col md:flex-row justify-between items-center p-4 border-t">
                     <p>{selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected</p>
                     <div className="flex mt-2 md:mt-0">
-                        <button onClick={closeModal} className="px-4 py-2 text-gray-600 hover:text-gray-800 mr-2">
+                        <button
+                            onClick={closeModal}
+                            className="px-4 py-2 border border-black border-opacity-25 text-gray-600 hover:bg-gray-200 hover:text-gray-800 mr-2 rounded-md"
+                        >
                             Cancel
                         </button>
+
                         <button onClick={handleAddClick} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
                             Add
                         </button>
