@@ -2,7 +2,7 @@ import { MdEdit } from "react-icons/md";
 
 export default function ProductInput({ selectedProducts, openModal }) {
     return (
-        <div className="flex flex-col relative w-full md:w-1/2">
+        <div className="flex flex-col w-full md:w-1/2">
             <label className="text-gray-700 mb-1 font-semibold">Product</label>
             <div className="relative">
                 <input

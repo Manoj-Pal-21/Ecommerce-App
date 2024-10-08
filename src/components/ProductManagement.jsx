@@ -29,23 +29,23 @@ export default function ProductManagement({ products, discountAmount, discountTy
                                         type="text"
                                         value={product.variant?.option1 || ''}
                                         readOnly
-                                        className="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                                        className="flex-grow px-5 py-2 border border-gray-300 rounded-md focus:outline-none"
                                     />
                                     <input
                                         type="number"
                                         value={discountAmount}
                                         readOnly
-                                        className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none ml-2"
+                                        className="w-20 px-5 py-2 border border-gray-300 rounded-md focus:outline-none ml-2"
                                     />
                                     <select
                                         value={discountType}
                                         readOnly
-                                        className="w-30 px-3 py-2 border border-gray-300 rounded-md focus:outline-none ml-2"
+                                        className="w-30 px-5 py-2 border border-gray-300 rounded-md focus:outline-none ml-2"
                                     >
                                         <option value="percent"> % Off </option>
                                         <option value="flat"> Flat Off </option>
                                     </select>
-                                    <button 
+                                    <button
                                         className="text-gray-400 hover:text-gray-600"
                                         onClick={() => removeProduct(index)}
                                     >

@@ -40,7 +40,7 @@ export default function DiscountInput({
                 <div className="flex items-center space-x-3">
                     <button
                         onClick={toggleDiscountInput}
-                        className="bg-[#008060] text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
+                        className="bg-[#008060] text-white px-6 py-2 rounded-md hover:bg-green-600 transition duration-200"
                     >
                         Apply Discount
                     </button>
