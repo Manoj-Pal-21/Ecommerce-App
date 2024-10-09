@@ -131,7 +131,13 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                                             {isAllVariantsSelected(product) ? <MdCheckBox size={24} /> : <MdCheckBoxOutlineBlank size={24} />}
                                         </button>
                                         {product.image && (
-                                            <img src={product.image.src} alt={product.title} className="w-10 h-10 object-cover mr-2" />
+                                            <img
+                                                src={product.image.src}
+                                                alt={product.title}
+                                                className="w-6 h-6 object-cover mr-2"
+                                                loading="lazy" 
+                                                style={{ width: '30px', height: '30px' }} 
+                                            />
                                         )}
                                         <div className="flex-grow">
                                             <p className="font-semibold">{product.title}</p>
