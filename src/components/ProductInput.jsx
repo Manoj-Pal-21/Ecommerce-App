@@ -1,10 +1,14 @@
-import { MdEdit } from "react-icons/md";
+import { MdEdit, MdDragIndicator } from "react-icons/md";
 
-export default function ProductInput({ selectedProducts, openModal }) {
+export default function ProductInput({ index, selectedProducts, openModal }) {
     return (
         <div className="flex flex-col w-full md:w-1/2">
             <label className="text-gray-700 mb-1 font-semibold">Product</label>
-            <div className="relative">
+            <div className="relative flex items-center">
+                <span className="mr-2 font-semibold text-gray-700 flex items-center">
+                    <MdDragIndicator size={20} className="mr-1 cursor-move" /> 
+                    {index + 1}.
+                </span>
                 <input
                     type="text"
                     value={selectedProducts.length > 0 ? selectedProducts[0].title : ''}
