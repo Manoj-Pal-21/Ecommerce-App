@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MdClose, MdSearch, MdCheckBox, MdCheckBoxOutlineBlank } from 'react-icons/md';
+import { MdClose, MdSearch, MdCheckBox, MdCheckBoxOutlineBlank, MdIndeterminateCheckBox } from 'react-icons/md';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Loader from '../loader';
 import debounce from 'lodash.debounce';
@@ -59,15 +59,24 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
     };
 
     const isAllVariantsSelected = (product) => {
-        return product.variants.every((variant) => selectedProducts.includes(variant.id));
+        const selectedVariantIds = selectedProducts.filter(id => product.variants.some(variant => variant.id === id));
+        if (selectedVariantIds.length === product.variants.length) {
+            return 'all'; 
+        }
+        if (selectedVariantIds.length > 0) {
+            return 'some'; 
+        }
+        return 'none'; 
     };
 
     const toggleAllVariants = (product) => {
         const variantIds = product.variants.map(variant => variant.id);
-        if (isAllVariantsSelected(product)) {
-            setSelectedProducts((prev) => prev.filter(id => !variantIds.includes(id)));
+        const currentSelectionState = isAllVariantsSelected(product);
+
+        if (currentSelectionState === 'all') {
+            setSelectedProducts(prev => prev.filter(id => !variantIds.includes(id)));
         } else {
-            setSelectedProducts((prev) => [...prev, ...variantIds]);
+            setSelectedProducts(prev => [...prev, ...variantIds]);
         }
     };
 
@@ -128,11 +137,17 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                                 <div key={product.id} className="mb-4 border-b last:border-b-0 pb-2">
                                     <div className="flex items-center py-2">
                                         <button onClick={() => toggleAllVariants(product)} className="mr-2 text-green-600">
-                                            {isAllVariantsSelected(product) ? <MdCheckBox size={24} /> : <MdCheckBoxOutlineBlank size={24} />}
+                                            {isAllVariantsSelected(product) === 'all' ? (
+                                                <MdCheckBox size={24} />
+                                            ) : isAllVariantsSelected(product) === 'some' ? (
+                                                <MdIndeterminateCheckBox size={24} />
+                                            ) : (
+                                                <MdCheckBoxOutlineBlank size={24} />
+                                            )}
                                         </button>
                                         {product.image && (
                                             <img
-                                                src={product.image.src +'&width=30&height=30'}
+                                                src={product.image.src + '&width=30&height=30'}
                                                 alt={product.title}
                                                 className="w-6 h-6 object-cover mr-2"
                                                 loading="lazy" 
