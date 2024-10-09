@@ -132,11 +132,10 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                                         </button>
                                         {product.image && (
                                             <img
-                                                src={product.image.src}
+                                                src={product.image.src +'&width=30&height=30'}
                                                 alt={product.title}
                                                 className="w-6 h-6 object-cover mr-2"
                                                 loading="lazy" 
-                                                style={{ width: '30px', height: '30px' }} 
                                             />
                                         )}
                                         <div className="flex-grow">
