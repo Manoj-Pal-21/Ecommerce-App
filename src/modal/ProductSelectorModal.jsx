@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MdClose, MdSearch, MdCheckBox, MdCheckBoxOutlineBlank } from 'react-icons/md';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Loader from '../loader';
+import debounce from 'lodash.debounce';
 
 export default function ProductSelectorModal({ closeModal, onAddProducts }) {
     const [selectedProducts, setSelectedProducts] = useState([]);
@@ -9,11 +10,13 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
     const [hasMore, setHasMore] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(false); 
+    const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true); 
+    const fetchProducts = useCallback(async () => {
+        if (loading || !hasMore) return;
+
+        setLoading(true);
+        try {
             const response = await fetch(`https://stageapi.monkcommerce.app/task/products/search?search=${searchTerm}&page=${currentPage}&limit=10`, {
                 method: 'GET',
                 headers: {
@@ -22,16 +25,32 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                 },
             });
             const data = await response.json();
-            setLoading(false);
-            
+
             if (data.length < 10) {
                 setHasMore(false);
             }
             setProducts(prev => [...prev, ...data]);
-        };
+        } catch (error) {
+            console.error('Failed to fetch products:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [currentPage, loading, hasMore, searchTerm]);
 
+    useEffect(() => {
         fetchProducts();
-    }, [searchTerm, currentPage]);
+    }, [fetchProducts]);
+
+    const debouncedSearch = useCallback(debounce((term) => {
+        setSearchTerm(term);
+        setCurrentPage(1);
+        setProducts([]);
+        setHasMore(true);
+    }, 300), []);
+
+    const handleSearchChange = (e) => {
+        debouncedSearch(e.target.value);
+    };
 
     const toggleVariant = (variantId) => {
         setSelectedProducts((prev) =>
@@ -93,13 +112,7 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                             type="text"
                             placeholder="Search product"
                             className="w-full pl-10 pr-4 py-2 border rounded-md"
-                            value={searchTerm}
-                            onChange={(e) => {
-                                setSearchTerm(e.target.value);
-                                setCurrentPage(1);
-                                setProducts([]);
-                                setHasMore(true);
-                            }}
+                            onChange={handleSearchChange}
                         />
                         <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     </div>
@@ -108,7 +121,7 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                             dataLength={filteredProducts.length}
                             next={() => setCurrentPage(prev => prev + 1)}
                             hasMore={hasMore}
-                            loader={loading ? <Loader /> : null} 
+                            loader={loading ? <Loader /> : null}
                             endMessage={<p>No more products</p>}
                         >
                             {filteredProducts.map((product) => (
@@ -140,7 +153,7 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                                                     <p className="text-sm font-semibold">${parseFloat(variant.price).toFixed(2)}</p>
                                                 </div>
                                             </div>
-                                        ))} 
+                                        ))}
                                     </div>
                                 </div>
                             ))}
