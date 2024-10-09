@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MdClose, MdSearch, MdCheckBox, MdCheckBoxOutlineBlank } from 'react-icons/md';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Loader from '../loader';
@@ -9,11 +9,11 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
     const [hasMore, setHasMore] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(false); 
+    const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true); 
+    const fetchProducts = useCallback(async () => {
+        setLoading(true);
+        try {
             const response = await fetch(`https://stageapi.monkcommerce.app/task/products/search?search=${searchTerm}&page=${currentPage}&limit=10`, {
                 method: 'GET',
                 headers: {
@@ -22,57 +22,48 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                 },
             });
             const data = await response.json();
-            setLoading(false);
-            
-            if (data.length < 10) {
-                setHasMore(false);
-            }
-            setProducts(prev => [...prev, ...data]);
-        };
 
-        fetchProducts();
+            setProducts(prev => [...prev, ...data]);
+            setHasMore(data.length === 10); 
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        } finally {
+            setLoading(false);
+        }
     }, [searchTerm, currentPage]);
 
-    const toggleVariant = (variantId) => {
-        setSelectedProducts((prev) =>
-            prev.includes(variantId) ? prev.filter((p) => p !== variantId) : [...prev, variantId]
-        );
-    };
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
 
-    const isAllVariantsSelected = (product) => {
-        return product.variants.every((variant) => selectedProducts.includes(variant.id));
+    const toggleVariant = (variantId) => {
+        setSelectedProducts(prev =>
+            prev.includes(variantId) ? prev.filter(id => id !== variantId) : [...prev, variantId]
+        );
     };
 
     const toggleAllVariants = (product) => {
         const variantIds = product.variants.map(variant => variant.id);
-        if (isAllVariantsSelected(product)) {
-            setSelectedProducts((prev) => prev.filter(id => !variantIds.includes(id)));
-        } else {
-            setSelectedProducts((prev) => [...prev, ...variantIds]);
-        }
+        setSelectedProducts(prev => {
+            const allSelected = variantIds.every(id => prev.includes(id));
+            return allSelected ? prev.filter(id => !variantIds.includes(id)) : [...prev, ...variantIds];
+        });
     };
 
-    const filteredProducts = products.filter((product) =>
+    const filteredProducts = products.filter(product =>
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.variants.some((variant) =>
-            variant.title.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        product.variants.some(variant => variant.title.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const handleAddClick = () => {
-        const selectedProductsWithVariants = filteredProducts.flatMap(product =>
+        const selectedVariants = filteredProducts.flatMap(product =>
             product.variants
                 .filter(variant => selectedProducts.includes(variant.id))
-                .map(variant => ({
-                    ...product,
-                    variant
-                }))
+                .map(variant => ({ ...product, variant }))
         );
 
-        const uniqueProducts = selectedProductsWithVariants.filter((item, index, self) =>
-            index === self.findIndex((t) => (
-                t.variant.id === item.variant.id
-            ))
+        const uniqueProducts = selectedVariants.filter((item, index, self) =>
+            index === self.findIndex(t => t.variant.id === item.variant.id)
         );
 
         onAddProducts(uniqueProducts);
@@ -108,14 +99,16 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                             dataLength={filteredProducts.length}
                             next={() => setCurrentPage(prev => prev + 1)}
                             hasMore={hasMore}
-                            loader={loading ? <Loader /> : null} 
+                            loader={loading ? <Loader /> : null}
                             endMessage={<p>No more products</p>}
                         >
-                            {filteredProducts.map((product) => (
+                            {filteredProducts.map(product => (
                                 <div key={product.id} className="mb-4 border-b last:border-b-0 pb-2">
                                     <div className="flex items-center py-2">
                                         <button onClick={() => toggleAllVariants(product)} className="mr-2 text-green-600">
-                                            {isAllVariantsSelected(product) ? <MdCheckBox size={24} /> : <MdCheckBoxOutlineBlank size={24} />}
+                                            {product.variants.every(variant => selectedProducts.includes(variant.id))
+                                                ? <MdCheckBox size={24} />
+                                                : <MdCheckBoxOutlineBlank size={24} />}
                                         </button>
                                         {product.image && (
                                             <img src={product.image.src} alt={product.title} className="w-10 h-10 object-cover mr-2" />
@@ -125,10 +118,12 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                                         </div>
                                     </div>
                                     <div className="ml-8">
-                                        {product.variants.map((variant) => (
+                                        {product.variants.map(variant => (
                                             <div key={variant.id} className="flex items-center py-2">
                                                 <button onClick={() => toggleVariant(variant.id)} className="mr-2 text-green-600">
-                                                    {selectedProducts.includes(variant.id) ? <MdCheckBox size={24} /> : <MdCheckBoxOutlineBlank size={24} />}
+                                                    {selectedProducts.includes(variant.id)
+                                                        ? <MdCheckBox size={24} />
+                                                        : <MdCheckBoxOutlineBlank size={24} />}
                                                 </button>
                                                 <div className="flex-grow">
                                                     <p className="text-sm font-semibold">{variant.title}</p>
@@ -140,7 +135,7 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
                                                     <p className="text-sm font-semibold">${parseFloat(variant.price).toFixed(2)}</p>
                                                 </div>
                                             </div>
-                                        ))} 
+                                        ))}
                                     </div>
                                 </div>
                             ))}
