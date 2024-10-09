@@ -5,8 +5,13 @@ export default function App() {
   return (
     <>
       <Header />
-      <ProductAdder />
+      <div className="mt-16"> 
+        <ProductAdder />
+      </div>
     </>
   )
 }
+
+
+
 
