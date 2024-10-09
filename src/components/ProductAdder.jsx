@@ -9,6 +9,7 @@ export default function ProductAdder() {
     const [productSets, setProductSets] = useState([{ selectedProducts: [], discountAmount: 0, discountType: 'percent' }]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
+    const [error, setError] = useState("");
 
     const openModal = (index) => {
         setEditingIndex(index);
@@ -42,8 +43,13 @@ export default function ProductAdder() {
     };
 
     const addProductSet = () => {
+        if (productSets.length >= 4) {
+            setError("You can only add up to 4 product fields.");
+            return;
+        }
         setProductSets(prev => [...prev, { selectedProducts: [], discountAmount: 0, discountType: 'percent' }]);
         setShowDiscount(prev => [...prev, false]);
+        setError("");
     };
 
     const removeProduct = (setIndex, productIndex) => {
@@ -65,6 +71,7 @@ export default function ProductAdder() {
     return (
         <div className="w-full max-w-xl mx-auto p-4 mt-10">
             <h2 className="text-2xl font-semibold mb-6">Add Products</h2>
+            {error && <div className="text-red-600 mb-4">{error}</div>}
             {productSets.map((set, index) => (
                 <div key={index} className="mb-6">
                     <div className="flex justify-between space-x-4">
