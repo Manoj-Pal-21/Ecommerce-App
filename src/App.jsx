@@ -1,4 +1,4 @@
-import Header from "./components/header";
+import Header from "./components/Header";
 import ProductAdder from "./components/ProductAdder";
 
 export default function App() {
