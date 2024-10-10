@@ -26,10 +26,7 @@ export default function ProductAdder() {
         setProductSets(prev => {
             const updatedSets = [...prev];
             if (editingIndex !== null) {
-                updatedSets[editingIndex].selectedProducts = [
-                    ...updatedSets[editingIndex].selectedProducts,
-                    ...newProducts
-                ];
+                updatedSets[editingIndex].selectedProducts.push(...newProducts);
             } else {
                 updatedSets.push({ selectedProducts: newProducts, discountAmount: 0, discountType: 'percent' });
             }
@@ -40,9 +37,9 @@ export default function ProductAdder() {
 
     const toggleDiscountInput = (index) => {
         setShowDiscount(prev => {
-            const newShowDiscount = [...prev];
-            newShowDiscount[index] = !newShowDiscount[index];
-            return newShowDiscount;
+            const updatedShowDiscount = [...prev];
+            updatedShowDiscount[index] = !updatedShowDiscount[index];
+            return updatedShowDiscount;
         });
     };
 

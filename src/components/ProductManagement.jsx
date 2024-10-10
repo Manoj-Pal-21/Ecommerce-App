@@ -9,6 +9,7 @@ export default function ProductManagement({ products, discountAmount, discountTy
 
     const onDragEnd = (result) => {
         if (!result.destination) return;
+
         const reorderedVariants = Array.from(products);
         const [movedVariant] = reorderedVariants.splice(result.source.index, 1);
         reorderedVariants.splice(result.destination.index, 0, movedVariant);
@@ -42,9 +43,7 @@ export default function ProductManagement({ products, discountAmount, discountTy
                                                         {...provided.dragHandleProps}
                                                         className="flex items-center justify-between mb-2 border-b pb-2"
                                                     >
-                                                        <div className="flex items-center">
-                                                            <MdDragIndicator className="mr-2 cursor-pointer" />
-                                                        </div>
+                                                        <MdDragIndicator className="mr-2 cursor-pointer" />
                                                         <input
                                                             type="text"
                                                             value={product.variant?.option1 || ''}
