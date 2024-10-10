@@ -38,7 +38,6 @@ export default function ProductAdder() {
         closeModal();
     };
 
-
     const toggleDiscountInput = (index) => {
         setShowDiscount(prev => {
             const newShowDiscount = [...prev];
@@ -87,6 +86,14 @@ export default function ProductAdder() {
         });
     };
 
+    const updateVariants = (setIndex, newVariants) => {
+        setProductSets(prev => {
+            const updatedSets = [...prev];
+            updatedSets[setIndex].selectedProducts = newVariants;
+            return updatedSets;
+        });
+    };
+
     return (
         <div className="w-full max-w-xl mx-auto p-4 mt-10">
             <h2 className="text-2xl font-semibold mb-6">Add Products</h2>
@@ -118,10 +125,10 @@ export default function ProductAdder() {
                                             </div>
                                             <ProductManagement
                                                 products={set.selectedProducts}
-                                                setProducts={(newProducts) => updateProductSet(index, { selectedProducts: newProducts })}
                                                 discountAmount={set.discountAmount}
                                                 discountType={set.discountType}
                                                 removeProduct={(productIndex) => removeProduct(index, productIndex)}
+                                                updateVariants={(newVariants) => updateVariants(index, newVariants)}
                                             />
                                         </div>
                                     )}

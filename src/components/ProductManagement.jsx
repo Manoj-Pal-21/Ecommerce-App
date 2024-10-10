@@ -2,19 +2,17 @@ import { useState } from "react";
 import { MdClose, MdExpandLess, MdExpandMore, MdDragIndicator } from "react-icons/md";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-export default function ProductManagement({ products, setProducts, discountAmount, discountType, removeProduct }) {
+export default function ProductManagement({ products, discountAmount, discountType, removeProduct, updateVariants }) {
     const [showVariants, setShowVariants] = useState(false);
 
     const toggleVariants = () => setShowVariants(prev => !prev);
 
     const onDragEnd = (result) => {
         if (!result.destination) return;
-
-        const reorderedProducts = Array.from(products);
-        const [movedItem] = reorderedProducts.splice(result.source.index, 1);
-        reorderedProducts.splice(result.destination.index, 0, movedItem);
-
-        setProducts(reorderedProducts);
+        const reorderedVariants = Array.from(products);
+        const [movedVariant] = reorderedVariants.splice(result.source.index, 1);
+        reorderedVariants.splice(result.destination.index, 0, movedVariant);
+        updateVariants(reorderedVariants);
     };
 
     return (
@@ -29,30 +27,24 @@ export default function ProductManagement({ products, setProducts, discountAmoun
                 </div>
                 {showVariants && (
                     <DragDropContext onDragEnd={onDragEnd}>
-                        <Droppable droppableId="productVariants">
+                        <Droppable droppableId="variants">
                             {(provided) => (
-                                <div
-                                    ref={provided.innerRef}
-                                    {...provided.droppableProps}
-                                    className="mt-2 space-y-2"
-                                >
+                                <div ref={provided.innerRef} {...provided.droppableProps} className="mt-2 space-y-2">
                                     {products.length === 0 ? (
                                         <p className="text-gray-500">No products selected.</p>
                                     ) : (
                                         products.map((product, index) => (
-                                            <Draggable key={index} draggableId={`product-${index}`} index={index}>
+                                            <Draggable key={index} draggableId={`variant-${index}`} index={index}>
                                                 {(provided) => (
                                                     <div
                                                         ref={provided.innerRef}
                                                         {...provided.draggableProps}
+                                                        {...provided.dragHandleProps}
                                                         className="flex items-center justify-between mb-2 border-b pb-2"
                                                     >
-                                                        <span className="mr-2 text-gray-500">{index + 1}</span>
-                                                        <MdDragIndicator
-                                                            size={20}
-                                                            className="cursor-move mr-2"
-                                                            {...provided.dragHandleProps}
-                                                        />
+                                                        <div className="flex items-center">
+                                                            <MdDragIndicator className="mr-2 cursor-pointer" />
+                                                        </div>
                                                         <input
                                                             type="text"
                                                             value={product.variant?.option1 || ''}
