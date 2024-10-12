@@ -39,7 +39,7 @@ export default function ProductSelectorModal({ closeModal, onAddProducts }) {
 
     useEffect(() => {
         fetchProducts();
-    }, [fetchProducts]);
+    }, []);
 
     const debouncedSearch = useCallback(debounce((term) => {
         setSearchTerm(term);
